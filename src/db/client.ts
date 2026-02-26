@@ -9,6 +9,11 @@ const DB_PATH = resolve(PROJECT_ROOT, "data", "tax-filing.db");
 
 let db: DatabaseSync | null = null;
 
+/** テスト用: DBインスタンスを差し替える */
+export function setDb(database: DatabaseSync): void {
+  db = database;
+}
+
 export function getDb(): DatabaseSync {
   if (db) return db;
 

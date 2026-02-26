@@ -1,108 +1,221 @@
 {
-  "_comment": "e-Tax帳票定義。正式な帳票IDとフィールドコードはe-Tax XML構造設計書（CABダウンロード）から取得して更新すること。",
+  "_comment": "e-Tax帳票定義。e-Tax XML構造設計書・帳票フィールド仕様書（e-tax10.CAB）から取得。",
   "_specUrl": "https://www.e-tax.nta.go.jp/shiyo/shiyo3.htm",
+  "_specFile": "data/specs/e-tax10.CAB (68 xlsx files)",
   "procedureCode": "HOA",
   "procedureName": "法人税確定申告",
   "taxCategory": "法人税",
   "forms": {
     "schedule-01": {
-      "formId": "HOA200",
-      "formName": "各事業年度の所得に係る申告書－別表一",
+      "formId": "HOA112",
+      "formName": "各事業年度の所得に係る申告書－内国法人の分（別表一）",
+      "xmlTagPrefix": "BGA",
       "fields": {
-        "taxableIncome": { "code": "KHO001", "name": "所得金額又は欠損金額", "row": 1 },
-        "taxableIncomeRounded": { "code": "KHO002", "name": "同上（千円未満切捨）", "row": 2 },
-        "corporateTaxAmount": { "code": "KHO010", "name": "法人税額", "row": 10 },
-        "taxCreditsApplied": { "code": "KHO020", "name": "控除税額", "row": 20 },
-        "corporateTaxAfterCredits": { "code": "KHO030", "name": "差引法人税額", "row": 30 },
-        "localCorporateTax": { "code": "KHO040", "name": "地方法人税額", "row": 40 },
-        "defenseSpecialTax": { "code": "KHO050", "name": "防衛特別法人税額", "row": 50 },
-        "totalNationalTax": { "code": "KHO060", "name": "合計税額", "row": 60 },
-        "interimTaxPaid": { "code": "KHO070", "name": "中間納付額", "row": 70 },
-        "nationalTaxPayable": { "code": "KHO080", "name": "差引確定税額", "row": 80 }
+        "submissionDate": { "code": "BGA00010", "name": "提出年月日" },
+        "taxOffice": { "code": "BGA00020", "name": "税務署名" },
+        "address": { "code": "BGA00030", "name": "納税地" },
+        "phone": { "code": "BGA00040", "name": "納税地電話番号" },
+        "companyNameKana": { "code": "BGA00060", "name": "法人名（カナ）" },
+        "companyName": { "code": "BGA00070", "name": "法人名" },
+        "corporateNumber": { "code": "BGA00080", "name": "法人番号" },
+        "representativeName": { "code": "BGA00110", "name": "代表者" },
+        "capitalAmount": { "code": "BGA00150", "name": "期末現在の資本金の額又は出資金の額" },
+        "dozokuType": { "code": "BGA00170", "name": "同非区分" },
+        "salesAmount": { "code": "BGA00290", "name": "売上金額" },
+        "fiscalYearStart": { "code": "BGA00340", "name": "事業年度（自）" },
+        "fiscalYearEnd": { "code": "BGA00350", "name": "事業年度（至）" },
+        "taxableIncome": { "code": "BGA00360", "name": "所得金額又は欠損金額" },
+        "corporateTaxAmount": { "code": "BGA00390", "name": "法人税額" },
+        "localCorporateTax": { "code": "BGA00560", "name": "地方法人税額" },
+        "defenseSpecialTax": { "code": "BGA00590", "name": "防衛特別法人税額" },
+        "interimTaxPaid": { "code": "BGA00670", "name": "中間納付額" },
+        "nationalTaxPayable": { "code": "BGA00690", "name": "差引確定税額" }
       }
     },
     "schedule-02": {
-      "formId": "HOA211",
-      "formName": "同族会社等の判定に関する明細書－別表二",
+      "formId": "HOA201",
+      "formName": "同族会社等の判定に関する明細書（別表二）",
+      "xmlTagPrefix": "VA",
       "fields": {
-        "totalShares": { "code": "KDZ001", "name": "発行済株式の総数", "row": 1 },
-        "top3ShareTotal": { "code": "KDZ010", "name": "上位3グループの株式数", "row": 10 },
-        "top3Ratio": { "code": "KDZ011", "name": "上位3グループの割合", "row": 11 },
-        "isDozokuCompany": { "code": "KDZ020", "name": "同族会社の判定", "row": 20 }
+        "fiscalYearStart": { "code": "VAA00020", "name": "事業年度(自)" },
+        "fiscalYearEnd": { "code": "VAA00030", "name": "事業年度(至)" },
+        "companyName": { "code": "VAA00040", "name": "法人名" },
+        "totalSharesInner": { "code": "VAB00005", "name": "期末現在の発行済株式の総数（内書き）", "row": 1 },
+        "totalShares": { "code": "VAB00010", "name": "期末現在の発行済株式の総数", "row": 1 },
+        "top3ShareTotal": { "code": "VAB00020", "name": "上位3順位の株式数又は出資の金額", "row": 2 },
+        "shareRatio": { "code": "VAB00030", "name": "株式数等による判定", "row": 3 },
+        "totalVotingRightsInner": { "code": "VAB00050", "name": "期末現在の議決権の総数（内書き）", "row": 4 },
+        "totalVotingRights": { "code": "VAB00060", "name": "期末現在の議決権の総数", "row": 4 },
+        "top3VotingTotal": { "code": "VAB00070", "name": "上位3順位の議決権の数", "row": 5 },
+        "votingRatio": { "code": "VAB00080", "name": "議決権の数による判定", "row": 6 },
+        "dozokuRatio": { "code": "VAB00120", "name": "同族会社の判定割合", "row": 10 },
+        "tokuteiTop1Share": { "code": "VAC00010", "name": "上位1順位の株式数（特定同族）", "row": 11 },
+        "tokuteiShareRatio": { "code": "VAC00020", "name": "株式数等による判定（特定同族）", "row": 12 },
+        "tokuteiRatio": { "code": "VAC00070", "name": "特定同族会社の判定割合", "row": 17 },
+        "judgmentResult": { "code": "VAD00000", "name": "判定結果", "row": 18 }
       }
     },
     "schedule-04": {
-      "formId": "HOA201",
-      "formName": "所得の金額の計算に関する明細書－別表四",
+      "formId": "HOA410",
+      "formName": "所得の金額の計算に関する明細書（別表四）",
+      "xmlTagPrefix": "AQ",
       "fields": {
-        "netIncome": { "code": "KSH001", "name": "当期利益又は当期欠損の額", "row": 1 },
-        "additionTotal": { "code": "KSH010", "name": "加算合計", "row": 10 },
-        "deductionTotal": { "code": "KSH020", "name": "減算合計", "row": 20 },
-        "taxableIncome": { "code": "KSH030", "name": "所得金額又は欠損金額", "row": 52 }
+        "fiscalYearStart": { "code": "AQA00020", "name": "事業年度（自）" },
+        "fiscalYearEnd": { "code": "AQA00030", "name": "事業年度（至）" },
+        "companyName": { "code": "AQA00040", "name": "法人名" },
+        "netIncomeTotal": { "code": "AQB00010", "name": "当期利益又は当期欠損の額 総額", "row": 1 },
+        "netIncomeRetained": { "code": "AQB00020", "name": "当期利益又は当期欠損の額 留保", "row": 1 },
+        "netIncomeDividend": { "code": "AQB00040", "name": "当期利益 社外流出 配当", "row": 1 },
+        "netIncomeOther": { "code": "AQB00060", "name": "当期利益 社外流出 その他", "row": 1 },
+        "addCorporateTax": { "code": "AQC00020", "name": "加算 損金経理をした法人税 総額", "row": 2 },
+        "addResidentTax": { "code": "AQC00050", "name": "加算 損金経理をした住民税 総額", "row": 3 },
+        "addTaxProvision": { "code": "AQC00110", "name": "加算 損金経理をした納税充当金 総額", "row": 4 },
+        "addPenaltyTax": { "code": "AQC00140", "name": "加算 附帯税等 総額", "row": 5 },
+        "addDepreciation": { "code": "AQC00170", "name": "加算 減価償却超過額 総額", "row": 6 },
+        "addOfficerComp": { "code": "AQC00200", "name": "加算 役員給与損金不算入額 総額", "row": 7 },
+        "addEntertainment": { "code": "AQC00216", "name": "加算 交際費等損金不算入額 総額", "row": 8 },
+        "addSubtotalTotal": { "code": "AQC00330", "name": "加算 小計 総額", "row": 11 },
+        "deductDepreciation": { "code": "AQD00020", "name": "減算 減価償却超過認容額 総額", "row": 12 },
+        "taxableIncome": { "code": "AQF00010", "name": "所得金額又は欠損金額", "row": 52 }
       }
     },
     "schedule-05-1": {
-      "formId": "HOA202",
-      "formName": "利益積立金額及び資本金等の額の計算に関する明細書－別表五（一）",
+      "formId": "HOA511",
+      "formName": "利益積立金額及び資本金等の額の計算に関する明細書（別表五（一））",
+      "xmlTagPrefix": "IC",
       "fields": {
-        "beginningBalance": { "code": "KRI001", "name": "期首現在利益積立金額", "row": 1 },
-        "endingBalance": { "code": "KRI030", "name": "差引翌期首現在利益積立金額", "row": 31 }
+        "fiscalYearStart": { "code": "ICA00020", "name": "事業年度（自）" },
+        "fiscalYearEnd": { "code": "ICA00030", "name": "事業年度（至）" },
+        "companyName": { "code": "ICA00040", "name": "法人名" },
+        "reserveBeginning": { "code": "ICB00020", "name": "利益準備金 期首現在利益積立金額", "row": 1 },
+        "reserveDecrease": { "code": "ICB00040", "name": "利益準備金 当期の増減 減", "row": 1 },
+        "reserveIncrease": { "code": "ICB00050", "name": "利益準備金 当期の増減 増", "row": 1 },
+        "reserveEnding": { "code": "ICB00060", "name": "利益準備金 差引翌期首現在", "row": 1 },
+        "refundCorpTaxBeginning": { "code": "ICB00230", "name": "未収還付法人税 期首現在", "row": 23 },
+        "refundCorpTaxDecrease": { "code": "ICB00250", "name": "未収還付法人税 減", "row": 23 },
+        "refundCorpTaxIncrease": { "code": "ICB00260", "name": "未収還付法人税 増", "row": 23 },
+        "refundCorpTaxEnding": { "code": "ICB00270", "name": "未収還付法人税 差引翌期首", "row": 23 },
+        "retainedEarningsBeginning": { "code": "ICB00410", "name": "繰越損益金 期首現在利益積立金額", "row": 26 },
+        "retainedEarningsDecrease": { "code": "ICB00430", "name": "繰越損益金 当期の増減 減", "row": 26 },
+        "retainedEarningsIncrease": { "code": "ICB00440", "name": "繰越損益金 当期の増減 増", "row": 26 },
+        "retainedEarningsEnding": { "code": "ICB00460", "name": "繰越損益金 差引翌期首現在", "row": 26 },
+        "taxProvisionBeginning": { "code": "ICB00470", "name": "納税充当金 期首現在", "row": 27 },
+        "taxProvisionEnding": { "code": "ICB00520", "name": "納税充当金 差引翌期首現在", "row": 27 },
+        "totalBeginning": { "code": "ICB00540", "name": "差引合計額 期首現在", "row": 31 },
+        "totalEnding": { "code": "ICB00580", "name": "差引合計額 差引翌期首現在", "row": 31 }
       }
     },
     "schedule-05-2": {
-      "formId": "HOA203",
-      "formName": "租税公課の納付状況等に関する明細書－別表五（二）",
+      "formId": "HOA522",
+      "formName": "租税公課の納付状況等に関する明細書（別表五（二））",
+      "xmlTagPrefix": "IE",
       "fields": {
-        "corporateTaxPrior": { "code": "KZK001", "name": "法人税・前期確定", "row": 1 },
-        "corporateTaxCurrent": { "code": "KZK002", "name": "法人税・当期確定", "row": 2 }
+        "fiscalYearStart": { "code": "IEA00020", "name": "事業年度(自)" },
+        "fiscalYearEnd": { "code": "IEA00030", "name": "事業年度(至)" },
+        "companyName": { "code": "IEA00040", "name": "法人名" },
+        "corpTaxPriorBeginning": { "code": "IEB00050", "name": "法人税 前期確定 期首現在未納税額", "row": "1-2" },
+        "corpTaxPriorPaid": { "code": "IEB00090", "name": "法人税 前期確定 充当金取崩し納付", "row": "1-2" },
+        "corpTaxInterim": { "code": "IEB00190", "name": "法人税 当期中間 当期発生税額", "row": 3 },
+        "corpTaxFinal": { "code": "IEB00320", "name": "法人税 当期確定 当期発生税額", "row": 4 },
+        "corpTaxFinalUnpaid": { "code": "IEB00350", "name": "法人税 当期確定 期末現在未納税額", "row": 4 },
+        "corpTaxTotalBeginning": { "code": "IEB00380", "name": "法人税 計 期首現在未納税額", "row": 5 },
+        "corpTaxTotalAccrued": { "code": "IEB00390", "name": "法人税 計 当期発生税額", "row": 5 }
       }
     },
     "schedule-06": {
-      "formId": "HOA220",
-      "formName": "所得税額の控除に関する明細書－別表六（一）",
+      "formId": "HOB016",
+      "formName": "所得税額の控除に関する明細書（別表六（一））",
+      "xmlTagPrefix": "SY",
       "fields": {
-        "totalWithheldTax": { "code": "KSZ001", "name": "控除を受ける所得税額", "row": 1 },
-        "creditableAmount": { "code": "KSZ010", "name": "控除される所得税額", "row": 10 }
+        "totalWithheldTax": { "code": "SYB00010", "name": "控除を受ける所得税額" },
+        "creditableAmount": { "code": "SYB00110", "name": "控除される所得税額" }
       }
     },
     "schedule-07": {
-      "formId": "HOA221",
-      "formName": "欠損金又は災害損失金の損金算入に関する明細書－別表七（一）",
+      "formId": "HOB710",
+      "formName": "欠損金の損金算入等に関する明細書（別表七（一））",
+      "xmlTagPrefix": "MC",
       "fields": {
-        "totalDeduction": { "code": "KKS001", "name": "当期控除額合計", "row": 1 }
+        "fiscalYearStart": { "code": "MCA00020", "name": "事業年度(自)" },
+        "fiscalYearEnd": { "code": "MCA00030", "name": "事業年度(至)" },
+        "companyName": { "code": "MCA00040", "name": "法人名" },
+        "incomeBeforeDeduction": { "code": "MCB00002", "name": "控除前所得金額", "row": 1 },
+        "deductionLimitType": { "code": "MCB00007", "name": "所得金額控除限度額 区分", "row": 2 },
+        "deductionLimitAmount": { "code": "MCB00008", "name": "所得金額控除限度額 金額", "row": 2 },
+        "carriedLossAmount": { "code": "MCB00090", "name": "控除未済欠損金額", "row": 3 },
+        "currentDeduction": { "code": "MCB00100", "name": "当期控除額", "row": 4 },
+        "totalCarriedLoss": { "code": "MCB00230", "name": "計 控除未済欠損金額" },
+        "totalCurrentDeduction": { "code": "MCB00240", "name": "計 当期控除額" },
+        "totalCarryForward": { "code": "MCB00250", "name": "計 翌期繰越額" }
       }
     },
     "schedule-08": {
-      "formId": "HOA222",
-      "formName": "受取配当等の益金不算入額の計算に関する明細書－別表八（一）",
+      "formId": "HOB800",
+      "formName": "受取配当等の益金不算入に関する明細書（別表八（一））",
+      "xmlTagPrefix": "CB",
       "fields": {
-        "totalDividend": { "code": "KHT001", "name": "受取配当等の合計額", "row": 1 },
-        "totalExclusion": { "code": "KHT010", "name": "益金不算入額", "row": 10 }
+        "fiscalYearStart": { "code": "CBA00020", "name": "事業年度（自）" },
+        "fiscalYearEnd": { "code": "CBA00030", "name": "事業年度（至）" },
+        "companyName": { "code": "CBA00040", "name": "法人名" },
+        "whollyOwnedDividend": { "code": "CBB00005", "name": "完全子法人株式等に係る受取配当等の額", "row": 1 },
+        "relatedDividend": { "code": "CBB00020", "name": "関連法人株式等 受取配当等の額", "row": 2 },
+        "relatedDebtInterest": { "code": "CBB00090", "name": "関連法人 負債利子等控除額", "row": 11 },
+        "otherDividend": { "code": "CBB00110", "name": "その他株式等 受取配当等の額", "row": 12 },
+        "otherDebtInterest": { "code": "CBB00140", "name": "その他株式等 負債利子等控除額", "row": 14 },
+        "nonControlDividend": { "code": "CBB00143", "name": "非支配目的株式等 受取配当等の額", "row": 15 },
+        "exclusionType": { "code": "CBB00147", "name": "受取配当等の益金不算入額 区分", "row": 16 },
+        "exclusionAmount": { "code": "CBB00150", "name": "受取配当等の益金不算入額", "row": 16 }
       }
     },
     "schedule-14": {
-      "formId": "HOA230",
-      "formName": "寄付金の損金算入に関する明細書－別表十四（二）",
+      "formId": "HOE099",
+      "formName": "寄附金の損金算入に関する明細書（別表十四（二））",
+      "xmlTagPrefix": "WW",
       "fields": {
-        "totalDonations": { "code": "KKF001", "name": "寄付金の額の合計", "row": 1 },
-        "totalNonDeductible": { "code": "KKF010", "name": "損金不算入額", "row": 10 }
+        "fiscalYearStart": { "code": "WWA00020", "name": "事業年度（自）" },
+        "fiscalYearEnd": { "code": "WWA00030", "name": "事業年度（至）" },
+        "companyName": { "code": "WWA00040", "name": "法人名" },
+        "designatedDonation": { "code": "WWB00030", "name": "指定寄附金等の金額", "row": 1 },
+        "specialDonation": { "code": "WWB00040", "name": "特定公益増進法人等に対する寄附金額", "row": 2 },
+        "otherDonation": { "code": "WWB00050", "name": "その他の寄附金額", "row": 3 },
+        "totalDonation": { "code": "WWB00060", "name": "計", "row": 4 },
+        "incomeBeforeDonation": { "code": "WWB00100", "name": "寄附金支出前所得金額", "row": 8 },
+        "capitalAtEnd": { "code": "WWB00120", "name": "期末の資本金等の額", "row": 10 },
+        "generalDeductionLimit": { "code": "WWB00170", "name": "一般寄附金の損金算入限度額", "row": 13 },
+        "specialDeductionLimit": { "code": "WWB00210", "name": "特定公益増進法人等に対する寄附金の特別損金算入限度額", "row": 16 },
+        "specialDeductionAmount": { "code": "WWB00220", "name": "特定公益増進法人等に対する寄附金の損金算入額", "row": 17 },
+        "nonDeductibleTotal": { "code": "WWB00300", "name": "損金不算入額 計", "row": 24 }
       }
     },
     "schedule-15": {
-      "formId": "HOA231",
-      "formName": "交際費等の損金不算入額の計算に関する明細書－別表十五",
+      "formId": "HOE200",
+      "formName": "交際費等の損金算入に関する明細書（別表十五）",
+      "xmlTagPrefix": "EG",
       "fields": {
-        "totalEntertainment": { "code": "KKO001", "name": "交際費等の額", "row": 1 },
-        "nonDeductibleAmount": { "code": "KKO010", "name": "損金不算入額", "row": 10 }
+        "fiscalYearStart": { "code": "EGA00020", "name": "事業年度（自）" },
+        "fiscalYearEnd": { "code": "EGA00030", "name": "事業年度（至）" },
+        "companyName": { "code": "EGA00040", "name": "法人名" },
+        "totalEntertainment": { "code": "EGB00000", "name": "支出交際費等の額", "row": 1 },
+        "diningExpenseBase": { "code": "EGH00000", "name": "支出接待飲食費損金算入基準額", "row": 2 },
+        "fixedDeductionType": { "code": "EGC00010", "name": "中小法人等の定額控除限度額 区分", "row": 3 },
+        "fixedDeductionMonths": { "code": "EGC00020", "name": "中小法人等の定額控除限度額 月数", "row": 3 },
+        "fixedDeductionAmount": { "code": "EGC00030", "name": "中小法人等の定額控除限度額 金額", "row": 3 },
+        "deductionLimitType": { "code": "EGD00005", "name": "損金算入限度額 区分", "row": 4 },
+        "deductionLimitAmount": { "code": "EGD00020", "name": "損金算入限度額 金額", "row": 4 },
+        "nonDeductibleAmount": { "code": "EGE00000", "name": "損金不算入額", "row": 5 }
       }
     },
-    "schedule-16": {
-      "formId": "HOA240",
-      "formName": "減価償却資産の償却額の計算に関する明細書－別表十六",
-      "fields": {
-        "totalTaxLimit": { "code": "KGS001", "name": "償却限度額合計", "row": 1 },
-        "totalExcess": { "code": "KGS010", "name": "償却超過額合計", "row": 10 }
-      }
+    "schedule-16-1": {
+      "formId": "HOE315",
+      "formName": "旧定額法又は定額法による減価償却資産の償却額の計算に関する明細書（別表十六（一））",
+      "xmlTagPrefix": "GS",
+      "fields": {}
+    },
+    "schedule-16-2": {
+      "formId": "HOE325",
+      "formName": "旧定率法又は定率法による減価償却資産の償却額の計算に関する明細書（別表十六（二））",
+      "xmlTagPrefix": "GT",
+      "fields": {}
     }
   }
 }
