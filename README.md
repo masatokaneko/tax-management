@@ -1,0 +1,213 @@
+# freee法人税申告 MCP サーバー
+
+freee会計データを用いた法人税務申告自動化のためのMCPサーバー。Claude DesktopやClaude Codeをインターフェースとして、税務調整 → 別表計算 → 整合性チェック → 電子申告ファイル出力までを一貫して実行します。
+
+## 特徴
+
+- **全主要別表に対応** — 別表一・二・四・五(一)(二)・六・七・八・十四・十五・十六
+- **消費税** — 一般課税（原則課税）・簡易課税
+- **地方税** — 法人住民税・法人事業税・特別法人事業税
+- **電子申告ファイル出力** — e-Tax XML / eLTAX XML / 財務諸表XBRL
+- **整合性チェック** — 別表間の自動検算（別表四⇔五(一)等）
+- **AI税務調整推定** — Claudeが仕訳データから税務調整項目を推定、ユーザー確認後に確定
+
+## 必要環境
+
+- Node.js 22以上（`node:sqlite` を使用）
+- Claude Desktop または Claude Code
+
+## セットアップ
+
+```bash
+git clone https://github.com/masatokaneko/tax-management.git
+cd tax-management
+npm install
+npm run build
+```
+
+## Claude Desktop への設定
+
+`~/Library/Application Support/Claude/claude_desktop_config.json` に追加:
+
+```json
+{
+  "mcpServers": {
+    "tax-filing": {
+      "command": "node",
+      "args": ["<プロジェクトの絶対パス>/dist/index.js"],
+      "cwd": "<プロジェクトの絶対パス>"
+    }
+  }
+}
+```
+
+設定後、Claude Desktopを再起動してください。
+
+## Claude Code への設定
+
+`~/.mcp.json` に追加:
+
+```json
+{
+  "mcpServers": {
+    "tax-filing": {
+      "command": "node",
+      "args": ["<プロジェクトの絶対パス>/dist/index.js"],
+      "cwd": "<プロジェクトの絶対パス>"
+    }
+  }
+}
+```
+
+## 使い方
+
+Claude Desktop/Claude Codeで対話的に利用します。
+
+### 1. 会社情報と事業年度の設定
+
+> 「会社情報を設定して。会社名は株式会社テスト、freee会社ID 1356167、決算月は3月、資本金1000万円。事業年度は2024年4月から2025年3月。」
+
+### 2. 税務調整項目の追加
+
+> 「交際費の損金不算入額50万円を加算項目として追加して」
+
+### 3. 全別表の一括計算
+
+> 「当期純利益800万円で全別表を一括計算して」
+
+### 4. 結果の確認
+
+> 「申告書のプレビューを見せて」
+> 「整合性チェックをして」
+
+### 5. 電子申告ファイルの出力
+
+> 「e-Tax用XMLファイルを出力して」
+> 「eLTAX用XMLファイルを出力して」
+
+## ツール一覧
+
+### セットアップ
+
+| ツール名 | 説明 |
+|---------|------|
+| `set-company-info` | 会社情報の設定（会社名・資本金・所在地等） |
+| `init-fiscal-year` | 事業年度の作成 |
+| `import-prior-data` | 前期データの取り込み（繰越欠損金・利益積立金等） |
+
+### データ取得
+
+| ツール名 | 説明 |
+|---------|------|
+| `get-tax-rates` | 適用税率テーブルの表示 |
+| `fetch-freee-data` | freeeから取得した会計データのキャッシュ |
+
+### 税務調整
+
+| ツール名 | 説明 |
+|---------|------|
+| `add-adjustment` | 税務調整項目の追加（加算/減算、留保/社外流出） |
+| `list-adjustments` | 調整項目一覧の表示 |
+| `update-adjustment` | 調整項目の修正 |
+| `delete-adjustment` | 調整項目の削除 |
+| `confirm-adjustment` | 調整項目の確認済みマーク |
+
+### 別表計算
+
+| ツール名 | 対応別表 |
+|---------|---------|
+| `calculate-schedule-01` | 別表一（法人税額の計算） |
+| `calculate-schedule-02` | 別表二（同族会社等の判定） |
+| `calculate-schedule-04` | 別表四（所得の金額の計算） |
+| `calculate-schedule-05-1` | 別表五(一)（利益積立金額） |
+| `calculate-schedule-05-2` | 別表五(二)（租税公課の納付状況） |
+| `calculate-schedule-06` | 別表六(一)（所得税額の控除） |
+| `calculate-schedule-07` | 別表七(一)（欠損金の繰越控除） |
+| `calculate-schedule-08` | 別表八(一)（受取配当等の益金不算入） |
+| `calculate-schedule-14` | 別表十四(二)（寄附金の損金算入） |
+| `calculate-schedule-15` | 別表十五（交際費等の損金不算入） |
+| `calculate-schedule-16` | 別表十六（減価償却資産の計算） |
+| `calculate-all-schedules` | 全別表を依存順序で一括計算 |
+
+### 消費税
+
+| ツール名 | 説明 |
+|---------|------|
+| `calculate-consumption-tax-general` | 一般課税（原則課税）の計算 |
+| `calculate-consumption-tax-simplified` | 簡易課税の計算 |
+
+### 地方税
+
+| ツール名 | 説明 |
+|---------|------|
+| `calculate-resident-tax` | 法人住民税の計算（法人税割+均等割） |
+| `calculate-enterprise-tax` | 法人事業税の計算（3段階累進税率） |
+| `calculate-special-enterprise-tax` | 特別法人事業税の計算 |
+
+### 検証・出力
+
+| ツール名 | 説明 |
+|---------|------|
+| `validate-schedules` | 別表間の整合性チェック |
+| `preview-return` | 申告書プレビュー（Markdown形式） |
+| `export-etax-xml` | e-Tax XML出力（国税） |
+| `export-eltax-xml` | eLTAX XML出力（地方税） |
+| `export-financial-xbrl` | 財務諸表XBRL出力 |
+| `get-filing-status` | 申告進捗状況の確認 |
+
+## 計算フロー
+
+別表は以下の依存順序で計算されます（`calculate-all-schedules`で自動制御）:
+
+```
+別表十六（減価償却）─┐
+別表十五（交際費）──┤
+別表八 （受取配当）──┼→ 別表四（所得計算）→ 別表七（欠損金控除）─┐
+                    │                                           │
+別表十四（寄附金）──┘     別表六（税額控除）──────────────────────┤
+                                                               │
+                         別表一（法人税額）←────────────────────┘
+                              │
+                         別表五(二)（租税公課）
+                              │
+                         別表五(一)（利益積立金）
+
+別表二（同族会社判定）── 独立して計算可能
+```
+
+## 対応税率
+
+| 年度 | 法人税率 | 中小法人軽減税率 | 地方法人税率 | 防衛特別法人税 |
+|------|---------|----------------|------------|-------------|
+| 2019-2025 | 23.2% | 15%（800万円以下） | 10.3% | 非適用 |
+| 2026〜 | 23.2% | 15%（800万円以下） | 10.3% | 4%（適用） |
+
+## 開発
+
+```bash
+npm test           # テスト実行
+npm run test:watch # テストwatch
+npm run lint       # 型チェック
+npm run build      # ビルド（dist/ + JSONデータコピー）
+```
+
+### テスト構成
+
+- **単体テスト**: 84件（法人税・消費税・地方税・端数処理・別表計算・DB・XML生成）
+- **統合テスト**: 13件（InMemoryTransportによるMCPサーバーE2E）
+- **合計**: 97テスト
+
+## 技術スタック
+
+| 技術 | 用途 |
+|------|------|
+| TypeScript (ESM) | 実装言語 |
+| @modelcontextprotocol/sdk ^1.27 | MCP サーバーフレームワーク |
+| Zod ^3.24 | パラメータバリデーション |
+| node:sqlite | データベース（Node.js組み込み） |
+| Vitest | テストフレームワーク |
+| stdio transport | Claude連携 |
+
+## ライセンス
+
+UNLICENSED（プライベート利用）
