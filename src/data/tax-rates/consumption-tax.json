@@ -1,0 +1,20 @@
+{
+  "standardRate": 0.10,
+  "reducedRate": 0.08,
+  "standardTaxPortion": 0.078,
+  "standardLocalPortion": 0.022,
+  "reducedTaxPortion": 0.063,
+  "reducedLocalPortion": 0.017,
+  "invoiceTransition": [
+    {
+      "periodFrom": "2023-10-01",
+      "periodTo": "2026-09-30",
+      "deductionRate": 0.80
+    },
+    {
+      "periodFrom": "2026-10-01",
+      "periodTo": "2029-09-30",
+      "deductionRate": 0.50
+    }
+  ]
+}

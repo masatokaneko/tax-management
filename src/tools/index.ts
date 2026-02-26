@@ -8,6 +8,7 @@ import { ImportPriorDataTool } from "./setup/import-prior-data.tool.js";
 
 // Data tools
 import { GetTaxRatesTool } from "./data/get-tax-rates.tool.js";
+import { FetchFreeeDataTool } from "./data/fetch-freee-data.tool.js";
 
 // Adjustment tools
 import { AddAdjustmentTool } from "./adjustment/add-adjustment.tool.js";
@@ -22,6 +23,9 @@ import { CalculateSchedule01Tool } from "./schedules/calculate-schedule-01.tool.
 import { CalculateSchedule05_2Tool } from "./schedules/calculate-schedule-05-2.tool.js";
 import { CalculateSchedule05_1Tool } from "./schedules/calculate-schedule-05-1.tool.js";
 import { CalculateAllSchedulesTool } from "./schedules/calculate-all-schedules.tool.js";
+import { CalculateSchedule16Tool } from "./schedules/calculate-schedule-16.tool.js";
+import { CalculateSchedule15Tool } from "./schedules/calculate-schedule-15.tool.js";
+import { CalculateSchedule02Tool } from "./schedules/calculate-schedule-02.tool.js";
 
 // Validation tools
 import { ValidateSchedulesTool } from "./validation/validate-schedules.tool.js";
@@ -40,6 +44,7 @@ export function registerAllTools(server: McpServer): void {
 
   // Data tools
   registerTool(server, GetTaxRatesTool);
+  registerTool(server, FetchFreeeDataTool);
 
   // Adjustment tools
   registerTool(server, AddAdjustmentTool);
@@ -54,6 +59,9 @@ export function registerAllTools(server: McpServer): void {
   registerTool(server, CalculateSchedule05_2Tool);
   registerTool(server, CalculateSchedule05_1Tool);
   registerTool(server, CalculateAllSchedulesTool);
+  registerTool(server, CalculateSchedule16Tool);
+  registerTool(server, CalculateSchedule15Tool);
+  registerTool(server, CalculateSchedule02Tool);
 
   // Validation tools
   registerTool(server, ValidateSchedulesTool);

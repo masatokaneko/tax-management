@@ -1,0 +1,27 @@
+{
+  "fiscalYear": "2025",
+  "effectiveFrom": "2025-04-01",
+  "effectiveTo": "2026-03-31",
+  "corporateTax": {
+    "standardRate": 0.232,
+    "sme": {
+      "capitalThreshold": 100000000,
+      "reducedRateThreshold": 8000000,
+      "reducedRate": 0.15,
+      "standardRate": 0.232
+    }
+  },
+  "localCorporateTax": {
+    "rate": 0.103
+  },
+  "defenseSpecialTax": {
+    "applicable": false,
+    "rate": 0.04,
+    "deductionAmount": 5000000,
+    "startDate": "2026-04-01"
+  },
+  "rounding": {
+    "taxableIncome": { "unit": 1000, "method": "floor" },
+    "taxAmount": { "unit": 100, "method": "floor" }
+  }
+}

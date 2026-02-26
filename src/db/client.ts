@@ -113,5 +113,23 @@ function initSchema(database: DatabaseSync): void {
       detail TEXT,
       timestamp TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS freee_cache (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fiscal_year_id TEXT NOT NULL REFERENCES fiscal_years(id),
+      data_type TEXT NOT NULL,
+      data_json TEXT NOT NULL,
+      fetched_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS shareholders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fiscal_year_id TEXT NOT NULL REFERENCES fiscal_years(id),
+      name TEXT NOT NULL,
+      group_name TEXT,
+      shares INTEGER NOT NULL,
+      is_related_person INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 }

@@ -1,0 +1,40 @@
+{
+  "municipalityCode": "13100",
+  "name": "東京都（特別区）",
+  "enterpriseTax": {
+    "income": {
+      "brackets": [
+        { "threshold": 4000000, "standardRate": 0.034, "tokyoRate": 0.0348 },
+        { "threshold": 8000000, "standardRate": 0.051, "tokyoRate": 0.0521 },
+        { "threshold": null, "standardRate": 0.068, "tokyoRate": 0.0695 }
+      ]
+    },
+    "specialCorporate": {
+      "rate": 0.37
+    }
+  },
+  "residentTax": {
+    "prefectural": {
+      "taxRate": {
+        "standardRate": 0.01,
+        "tokyoRate": 0.0177
+      },
+      "perCapita": 20000
+    },
+    "municipal": {
+      "taxRate": {
+        "standardRate": 0.06,
+        "tokyoRate": 0.0595
+      },
+      "perCapita": {
+        "capitalBrackets": [
+          { "capital": 10000000, "employees50orLess": 50000, "employeesOver50": 120000 },
+          { "capital": 100000000, "employees50orLess": 130000, "employeesOver50": 150000 },
+          { "capital": 1000000000, "employees50orLess": 160000, "employeesOver50": 400000 },
+          { "capital": 5000000000, "employees50orLess": 410000, "employeesOver50": 1750000 },
+          { "capital": null, "employees50orLess": 410000, "employeesOver50": 3000000 }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "description": "freee勘定科目名から税務調整カテゴリへのマッピング",
+  "mappings": {
+    "addition": {
+      "retained": [
+        { "freeeAccountName": "減価償却費", "taxCategory": "depreciation_excess", "scheduleRef": "16", "label": "減価償却超過額" },
+        { "freeeAccountName": "貸倒引当金繰入", "taxCategory": "bad_debt_reserve", "scheduleRef": null, "label": "貸倒引当金繰入超過額" }
+      ],
+      "outflow": [
+        { "freeeAccountName": "接待交際費", "taxCategory": "entertainment", "scheduleRef": "15", "label": "交際費等の損金不算入額" },
+        { "freeeAccountName": "寄付金", "taxCategory": "donation", "scheduleRef": "14", "label": "寄付金の損金不算入額" },
+        { "freeeAccountName": "法人税、住民税及び事業税", "taxCategory": "corporate_tax", "scheduleRef": null, "label": "損金不算入の租税公課" },
+        { "freeeAccountName": "法人税等", "taxCategory": "corporate_tax", "scheduleRef": null, "label": "損金不算入の租税公課" }
+      ]
+    },
+    "deduction": {
+      "outflow": [
+        { "freeeAccountName": "受取配当金", "taxCategory": "dividend_exclusion", "scheduleRef": "08", "label": "受取配当等の益金不算入額" }
+      ]
+    }
+  },
+  "taxableExpenseAccounts": [
+    "法人税、住民税及び事業税",
+    "法人税等",
+    "法人税等調整額"
+  ],
+  "notes": "このマッピングはAIによる税務調整推定の参考データです。実際の判定はClaude Codeが仕訳内容を分析して行います。"
+}
