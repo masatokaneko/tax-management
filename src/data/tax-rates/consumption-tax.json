@@ -3,8 +3,8 @@
   "reducedRate": 0.08,
   "standardTaxPortion": 0.078,
   "standardLocalPortion": 0.022,
-  "reducedTaxPortion": 0.063,
-  "reducedLocalPortion": 0.017,
+  "reducedTaxPortion": 0.0624,
+  "reducedLocalPortion": 0.0176,
   "invoiceTransition": [
     {
       "periodFrom": "2023-10-01",

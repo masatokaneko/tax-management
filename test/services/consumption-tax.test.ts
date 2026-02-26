@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 
 describe("consumption tax - general", () => {
   const STANDARD_TAX = 0.078;
-  const REDUCED_TAX = 0.063;
+  const REDUCED_TAX = 0.0624;
 
   function calcOutputTax(standardSales: number, reducedSales: number) {
     return {
@@ -18,13 +18,13 @@ describe("consumption tax - general", () => {
 
   it("reduced rate output tax calculation", () => {
     const result = calcOutputTax(0, 5000000);
-    expect(result.reduced).toBe(315000); // 5M × 6.3%
+    expect(result.reduced).toBe(312000); // 5M × 6.24%
   });
 
   it("mixed rate output tax", () => {
     const result = calcOutputTax(8000000, 2000000);
     expect(result.standard).toBe(624000);
-    expect(result.reduced).toBe(126000);
+    expect(result.reduced).toBe(124800); // 2M × 6.24%
   });
 });
 
