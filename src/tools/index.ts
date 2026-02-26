@@ -26,6 +26,19 @@ import { CalculateAllSchedulesTool } from "./schedules/calculate-all-schedules.t
 import { CalculateSchedule16Tool } from "./schedules/calculate-schedule-16.tool.js";
 import { CalculateSchedule15Tool } from "./schedules/calculate-schedule-15.tool.js";
 import { CalculateSchedule02Tool } from "./schedules/calculate-schedule-02.tool.js";
+import { CalculateSchedule06Tool } from "./schedules/calculate-schedule-06.tool.js";
+import { CalculateSchedule07Tool } from "./schedules/calculate-schedule-07.tool.js";
+import { CalculateSchedule08Tool } from "./schedules/calculate-schedule-08.tool.js";
+import { CalculateSchedule14Tool } from "./schedules/calculate-schedule-14.tool.js";
+
+// Consumption tax tools
+import { CalculateGeneralConsumptionTaxTool } from "./consumption-tax/calculate-general.tool.js";
+import { CalculateSimplifiedConsumptionTaxTool } from "./consumption-tax/calculate-simplified.tool.js";
+
+// Local tax tools
+import { CalculateResidentTaxTool } from "./local-tax/calculate-resident-tax.tool.js";
+import { CalculateEnterpriseTaxTool } from "./local-tax/calculate-enterprise-tax.tool.js";
+import { CalculateSpecialEnterpriseTaxTool } from "./local-tax/calculate-special-enterprise-tax.tool.js";
 
 // Validation tools
 import { ValidateSchedulesTool } from "./validation/validate-schedules.tool.js";
@@ -62,6 +75,19 @@ export function registerAllTools(server: McpServer): void {
   registerTool(server, CalculateSchedule16Tool);
   registerTool(server, CalculateSchedule15Tool);
   registerTool(server, CalculateSchedule02Tool);
+  registerTool(server, CalculateSchedule06Tool);
+  registerTool(server, CalculateSchedule07Tool);
+  registerTool(server, CalculateSchedule08Tool);
+  registerTool(server, CalculateSchedule14Tool);
+
+  // Consumption tax tools
+  registerTool(server, CalculateGeneralConsumptionTaxTool);
+  registerTool(server, CalculateSimplifiedConsumptionTaxTool);
+
+  // Local tax tools
+  registerTool(server, CalculateResidentTaxTool);
+  registerTool(server, CalculateEnterpriseTaxTool);
+  registerTool(server, CalculateSpecialEnterpriseTaxTool);
 
   // Validation tools
   registerTool(server, ValidateSchedulesTool);
