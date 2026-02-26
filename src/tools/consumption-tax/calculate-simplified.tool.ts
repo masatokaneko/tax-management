@@ -110,9 +110,15 @@ async function loadFreeeSimplifiedSales(
 
     // Read from freee_cache
     const db = getDb();
-    const dealsRow = db.prepare(
-      "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'journals' ORDER BY fetched_at DESC LIMIT 1"
-    ).get(fiscalYearId) as { data_json: string } | undefined;
+    // Try canonical key 'deals', fall back to legacy key 'journals'
+    const dealsRow = (
+      db.prepare(
+        "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'deals' ORDER BY fetched_at DESC LIMIT 1"
+      ).get(fiscalYearId) ??
+      db.prepare(
+        "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'journals' ORDER BY fetched_at DESC LIMIT 1"
+      ).get(fiscalYearId)
+    ) as { data_json: string } | undefined;
 
     const manualJournalsRow = db.prepare(
       "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'manual_journals' ORDER BY fetched_at DESC LIMIT 1"

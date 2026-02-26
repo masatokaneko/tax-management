@@ -5,8 +5,8 @@ import { errorResult, jsonResult, formatError } from "../../helpers/format-error
 
 const schema = z.object({
   fiscalYearId: z.string().describe("事業年度ID"),
-  dataType: z.enum(["trial_balance", "journals", "accounts", "all"])
-    .describe("取得データ種別: trial_balance=試算表, journals=仕訳データ, accounts=勘定科目マスタ, all=全て"),
+  dataType: z.enum(["trial_balance", "deals", "manual_journals", "accounts", "all"])
+    .describe("取得データ種別: trial_balance=試算表, deals=取引データ, manual_journals=振替伝票, accounts=勘定科目マスタ, all=全て"),
   data: z.record(z.unknown()).describe("freee MCPから取得したデータ（JSON）"),
   netIncome: z.number().int().optional().describe("試算表から読み取った当期純利益（円・整数）。dataType=trial_balance時に指定推奨。"),
 });
@@ -29,10 +29,17 @@ const handler = async (args: any) => {
         .run(fiscalYearId, dataType);
     }
 
+    // Normalize legacy key names to canonical freee API terms
+    const KEY_ALIASES: Record<string, string> = {
+      journals: "deals",
+      manualJournals: "manual_journals",
+    };
+
     // Store the data
     if (dataType === "all") {
-      // Expect data to have keys: trial_balance, journals, accounts
-      for (const [key, value] of Object.entries(data)) {
+      // Expect data to have keys: trial_balance, deals, manual_journals, accounts
+      for (const [rawKey, value] of Object.entries(data)) {
+        const key = KEY_ALIASES[rawKey] ?? rawKey;
         db.prepare("INSERT INTO freee_cache (fiscal_year_id, data_type, data_json, fetched_at) VALUES (?, ?, ?, ?)")
           .run(fiscalYearId, key, JSON.stringify(value), now);
       }

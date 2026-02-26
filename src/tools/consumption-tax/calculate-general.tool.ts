@@ -115,9 +115,15 @@ const handler = async (args: any) => {
 
     if (p.useFreeeData) {
       // freee_cache からデータ取得
-      const dealsRow = db.prepare(
-        "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'deals' ORDER BY fetched_at DESC LIMIT 1"
-      ).get(p.fiscalYearId) as any;
+      // Try canonical key 'deals', fall back to legacy key 'journals'
+      const dealsRow = (
+        db.prepare(
+          "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'deals' ORDER BY fetched_at DESC LIMIT 1"
+        ).get(p.fiscalYearId) ??
+        db.prepare(
+          "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'journals' ORDER BY fetched_at DESC LIMIT 1"
+        ).get(p.fiscalYearId)
+      ) as any;
 
       const mjRow = db.prepare(
         "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = 'manual_journals' ORDER BY fetched_at DESC LIMIT 1"
