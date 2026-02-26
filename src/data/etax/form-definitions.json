@@ -1,0 +1,108 @@
+{
+  "_comment": "e-Tax帳票定義。正式な帳票IDとフィールドコードはe-Tax XML構造設計書（CABダウンロード）から取得して更新すること。",
+  "_specUrl": "https://www.e-tax.nta.go.jp/shiyo/shiyo3.htm",
+  "procedureCode": "HOA",
+  "procedureName": "法人税確定申告",
+  "taxCategory": "法人税",
+  "forms": {
+    "schedule-01": {
+      "formId": "HOA200",
+      "formName": "各事業年度の所得に係る申告書－別表一",
+      "fields": {
+        "taxableIncome": { "code": "KHO001", "name": "所得金額又は欠損金額", "row": 1 },
+        "taxableIncomeRounded": { "code": "KHO002", "name": "同上（千円未満切捨）", "row": 2 },
+        "corporateTaxAmount": { "code": "KHO010", "name": "法人税額", "row": 10 },
+        "taxCreditsApplied": { "code": "KHO020", "name": "控除税額", "row": 20 },
+        "corporateTaxAfterCredits": { "code": "KHO030", "name": "差引法人税額", "row": 30 },
+        "localCorporateTax": { "code": "KHO040", "name": "地方法人税額", "row": 40 },
+        "defenseSpecialTax": { "code": "KHO050", "name": "防衛特別法人税額", "row": 50 },
+        "totalNationalTax": { "code": "KHO060", "name": "合計税額", "row": 60 },
+        "interimTaxPaid": { "code": "KHO070", "name": "中間納付額", "row": 70 },
+        "nationalTaxPayable": { "code": "KHO080", "name": "差引確定税額", "row": 80 }
+      }
+    },
+    "schedule-02": {
+      "formId": "HOA211",
+      "formName": "同族会社等の判定に関する明細書－別表二",
+      "fields": {
+        "totalShares": { "code": "KDZ001", "name": "発行済株式の総数", "row": 1 },
+        "top3ShareTotal": { "code": "KDZ010", "name": "上位3グループの株式数", "row": 10 },
+        "top3Ratio": { "code": "KDZ011", "name": "上位3グループの割合", "row": 11 },
+        "isDozokuCompany": { "code": "KDZ020", "name": "同族会社の判定", "row": 20 }
+      }
+    },
+    "schedule-04": {
+      "formId": "HOA201",
+      "formName": "所得の金額の計算に関する明細書－別表四",
+      "fields": {
+        "netIncome": { "code": "KSH001", "name": "当期利益又は当期欠損の額", "row": 1 },
+        "additionTotal": { "code": "KSH010", "name": "加算合計", "row": 10 },
+        "deductionTotal": { "code": "KSH020", "name": "減算合計", "row": 20 },
+        "taxableIncome": { "code": "KSH030", "name": "所得金額又は欠損金額", "row": 52 }
+      }
+    },
+    "schedule-05-1": {
+      "formId": "HOA202",
+      "formName": "利益積立金額及び資本金等の額の計算に関する明細書－別表五（一）",
+      "fields": {
+        "beginningBalance": { "code": "KRI001", "name": "期首現在利益積立金額", "row": 1 },
+        "endingBalance": { "code": "KRI030", "name": "差引翌期首現在利益積立金額", "row": 31 }
+      }
+    },
+    "schedule-05-2": {
+      "formId": "HOA203",
+      "formName": "租税公課の納付状況等に関する明細書－別表五（二）",
+      "fields": {
+        "corporateTaxPrior": { "code": "KZK001", "name": "法人税・前期確定", "row": 1 },
+        "corporateTaxCurrent": { "code": "KZK002", "name": "法人税・当期確定", "row": 2 }
+      }
+    },
+    "schedule-06": {
+      "formId": "HOA220",
+      "formName": "所得税額の控除に関する明細書－別表六（一）",
+      "fields": {
+        "totalWithheldTax": { "code": "KSZ001", "name": "控除を受ける所得税額", "row": 1 },
+        "creditableAmount": { "code": "KSZ010", "name": "控除される所得税額", "row": 10 }
+      }
+    },
+    "schedule-07": {
+      "formId": "HOA221",
+      "formName": "欠損金又は災害損失金の損金算入に関する明細書－別表七（一）",
+      "fields": {
+        "totalDeduction": { "code": "KKS001", "name": "当期控除額合計", "row": 1 }
+      }
+    },
+    "schedule-08": {
+      "formId": "HOA222",
+      "formName": "受取配当等の益金不算入額の計算に関する明細書－別表八（一）",
+      "fields": {
+        "totalDividend": { "code": "KHT001", "name": "受取配当等の合計額", "row": 1 },
+        "totalExclusion": { "code": "KHT010", "name": "益金不算入額", "row": 10 }
+      }
+    },
+    "schedule-14": {
+      "formId": "HOA230",
+      "formName": "寄付金の損金算入に関する明細書－別表十四（二）",
+      "fields": {
+        "totalDonations": { "code": "KKF001", "name": "寄付金の額の合計", "row": 1 },
+        "totalNonDeductible": { "code": "KKF010", "name": "損金不算入額", "row": 10 }
+      }
+    },
+    "schedule-15": {
+      "formId": "HOA231",
+      "formName": "交際費等の損金不算入額の計算に関する明細書－別表十五",
+      "fields": {
+        "totalEntertainment": { "code": "KKO001", "name": "交際費等の額", "row": 1 },
+        "nonDeductibleAmount": { "code": "KKO010", "name": "損金不算入額", "row": 10 }
+      }
+    },
+    "schedule-16": {
+      "formId": "HOA240",
+      "formName": "減価償却資産の償却額の計算に関する明細書－別表十六",
+      "fields": {
+        "totalTaxLimit": { "code": "KGS001", "name": "償却限度額合計", "row": 1 },
+        "totalExcess": { "code": "KGS010", "name": "償却超過額合計", "row": 10 }
+      }
+    }
+  }
+}

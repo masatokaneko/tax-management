@@ -45,6 +45,9 @@ import { ValidateSchedulesTool } from "./validation/validate-schedules.tool.js";
 
 // Export tools
 import { PreviewReturnTool } from "./export/preview-return.tool.js";
+import { ExportEtaxXmlTool } from "./export/export-etax-xml.tool.js";
+import { ExportEltaxXmlTool } from "./export/export-eltax-xml.tool.js";
+import { ExportFinancialXbrlTool } from "./export/export-financial-xbrl.tool.js";
 
 // Status tools
 import { GetFilingStatusTool } from "./status/get-filing-status.tool.js";
@@ -94,6 +97,9 @@ export function registerAllTools(server: McpServer): void {
 
   // Export tools
   registerTool(server, PreviewReturnTool);
+  registerTool(server, ExportEtaxXmlTool);
+  registerTool(server, ExportEltaxXmlTool);
+  registerTool(server, ExportFinancialXbrlTool);
 
   // Status tools
   registerTool(server, GetFilingStatusTool);
