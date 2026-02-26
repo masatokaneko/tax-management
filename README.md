@@ -15,8 +15,21 @@ freee会計データを用いた法人税務申告自動化のためのMCPサー
 
 - Node.js 22以上（`node:sqlite` を使用）
 - Claude Desktop または Claude Code
+- [freee MCP](https://github.com/freee/freee-mcp) — freee会計APIへのアクセスに必要
 
 ## セットアップ
+
+### 1. freee MCPのセットアップ
+
+本サーバーはfreee会計データの取得に [freee MCP](https://github.com/freee/freee-mcp) を使用します。先にfreee MCPをセットアップしてください。
+
+```bash
+npx freee-mcp configure
+```
+
+freee開発者ページでアプリ登録が必要です。詳細は [freee MCPのREADME](https://github.com/freee/freee-mcp) を参照してください。
+
+### 2. 本サーバーのビルド
 
 ```bash
 git clone https://github.com/masatokaneko/tax-management.git
@@ -25,13 +38,21 @@ npm install
 npm run build
 ```
 
-## Claude Desktop への設定
+### 3. MCPサーバーの設定
 
-`~/Library/Application Support/Claude/claude_desktop_config.json` に追加:
+freee MCPと本サーバーの**両方**を設定します。Claudeが2つのMCPサーバーを橋渡しして動作します。
+
+#### Claude Desktop
+
+`~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
+    "freee": {
+      "command": "npx",
+      "args": ["freee-mcp"]
+    },
     "tax-filing": {
       "command": "node",
       "args": ["<プロジェクトの絶対パス>/dist/index.js"],
@@ -43,13 +64,17 @@ npm run build
 
 設定後、Claude Desktopを再起動してください。
 
-## Claude Code への設定
+#### Claude Code
 
-`~/.mcp.json` に追加:
+`~/.mcp.json`:
 
 ```json
 {
   "mcpServers": {
+    "freee": {
+      "command": "npx",
+      "args": ["freee-mcp"]
+    },
     "tax-filing": {
       "command": "node",
       "args": ["<プロジェクトの絶対パス>/dist/index.js"],
@@ -59,13 +84,40 @@ npm run build
 }
 ```
 
+## 仕組み — 2つのMCPサーバー連携
+
+本サーバー単体では freee APIにアクセスしません。Claudeが **freee MCP** と **本サーバー (tax-filing)** の2つを仲介するブリッジパターンで動作します。
+
+```
+┌──────────────────────────────────────────────────────┐
+│                    Claude (AI)                        │
+│                                                      │
+│   ① freee MCPで会計データを取得                        │
+│   ② 取得データをtax-filingのfetch-freee-dataでキャッシュ │
+│   ③ tax-filingの計算ツールを実行                       │
+└──────┬───────────────────────┬────────────────────────┘
+       │                       │
+       ▼                       ▼
+┌──────────────┐      ┌───────────────────┐
+│  freee MCP   │      │  tax-filing MCP   │
+│  (freee公式)  │      │  (本サーバー)      │
+│              │      │                   │
+│ freee API    │      │ 別表計算           │
+│ OAuth認証    │      │ 消費税計算          │
+│ 取引/仕訳取得 │      │ 地方税計算          │
+│              │      │ 電子申告出力        │
+└──────────────┘      └───────────────────┘
+```
+
+freee MCPなしでも、手動で数値を入力して別表計算や消費税計算を行うことは可能です。
+
 ## 使い方
 
 Claude Desktop/Claude Codeで対話的に利用します。
 
 ### 1. 会社情報と事業年度の設定
 
-> 「会社情報を設定して。会社名は株式会社テスト、freee会社ID 1356167、決算月は3月、資本金1000万円。事業年度は2024年4月から2025年3月。」
+> 「会社情報を設定して。会社名は株式会社テスト、決算月は3月、資本金1000万円。事業年度は2024年4月から2025年3月。」
 
 ### 2. 税務調整項目の追加
 
@@ -75,12 +127,18 @@ Claude Desktop/Claude Codeで対話的に利用します。
 
 > 「当期純利益800万円で全別表を一括計算して」
 
-### 4. 結果の確認
+### 4. 消費税の計算（freee MCPと連携）
+
+> 「freeeから取引データと振替伝票を取得して、消費税を一般課税で計算して」
+
+Claudeが自動的にfreee MCPで仕訳データを取得 → tax-filingにキャッシュ → 消費税計算を実行します。
+
+### 5. 結果の確認
 
 > 「申告書のプレビューを見せて」
 > 「整合性チェックをして」
 
-### 5. 電子申告ファイルの出力
+### 6. 電子申告ファイルの出力
 
 > 「e-Tax用XMLファイルを出力して」
 > 「eLTAX用XMLファイルを出力して」
@@ -260,4 +318,8 @@ npm run build      # ビルド（dist/ + JSONデータコピー）
 
 ## ライセンス
 
-UNLICENSED（プライベート利用）
+MIT
+
+## 関連プロジェクト
+
+- [freee MCP](https://github.com/freee/freee-mcp) — freee API をClaudeから使えるようにするMCPサーバー（freee公式・Apache-2.0）
