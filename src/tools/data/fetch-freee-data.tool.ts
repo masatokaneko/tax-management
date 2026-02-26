@@ -8,12 +8,13 @@ const schema = z.object({
   dataType: z.enum(["trial_balance", "deals", "manual_journals", "accounts", "all"])
     .describe("取得データ種別: trial_balance=試算表, deals=取引データ, manual_journals=振替伝票, accounts=勘定科目マスタ, all=全て"),
   data: z.record(z.unknown()).describe("freee MCPから取得したデータ（JSON）"),
+  appendMode: z.boolean().default(false).describe("trueの場合、既存キャッシュを削除せず追記する（ページ分割取得時に使用）"),
   netIncome: z.number().int().optional().describe("試算表から読み取った当期純利益（円・整数）。dataType=trial_balance時に指定推奨。"),
 });
 
 const handler = async (args: any) => {
   try {
-    const { fiscalYearId, dataType, data, netIncome } = args.params;
+    const { fiscalYearId, dataType, data, appendMode, netIncome } = args.params;
     const db = getDb();
 
     const fy = db.prepare("SELECT * FROM fiscal_years WHERE id = ?").get(fiscalYearId) as any;
@@ -21,12 +22,14 @@ const handler = async (args: any) => {
 
     const now = new Date().toISOString();
 
-    // Delete existing cache for this data type
-    if (dataType === "all") {
-      db.prepare("DELETE FROM freee_cache WHERE fiscal_year_id = ?").run(fiscalYearId);
-    } else {
-      db.prepare("DELETE FROM freee_cache WHERE fiscal_year_id = ? AND data_type = ?")
-        .run(fiscalYearId, dataType);
+    // Delete existing cache for this data type (skip in append mode)
+    if (!appendMode) {
+      if (dataType === "all") {
+        db.prepare("DELETE FROM freee_cache WHERE fiscal_year_id = ?").run(fiscalYearId);
+      } else {
+        db.prepare("DELETE FROM freee_cache WHERE fiscal_year_id = ? AND data_type = ?")
+          .run(fiscalYearId, dataType);
+      }
     }
 
     // Normalize legacy key names to canonical freee API terms
@@ -35,17 +38,37 @@ const handler = async (args: any) => {
       manualJournals: "manual_journals",
     };
 
+    // Helper: upsert a single data_type — in append mode, merge arrays
+    function upsertCache(key: string, value: unknown) {
+      if (appendMode) {
+        const existing = db.prepare(
+          "SELECT data_json FROM freee_cache WHERE fiscal_year_id = ? AND data_type = ? ORDER BY fetched_at DESC LIMIT 1"
+        ).get(fiscalYearId, key) as { data_json: string } | undefined;
+
+        if (existing) {
+          const prev = JSON.parse(existing.data_json);
+          // Merge: if both are arrays, concatenate; otherwise replace
+          const merged = (Array.isArray(prev) && Array.isArray(value))
+            ? [...prev, ...value]
+            : value;
+          db.prepare("UPDATE freee_cache SET data_json = ?, fetched_at = ? WHERE fiscal_year_id = ? AND data_type = ?")
+            .run(JSON.stringify(merged), now, fiscalYearId, key);
+          return;
+        }
+      }
+      db.prepare("INSERT INTO freee_cache (fiscal_year_id, data_type, data_json, fetched_at) VALUES (?, ?, ?, ?)")
+        .run(fiscalYearId, key, JSON.stringify(value), now);
+    }
+
     // Store the data
     if (dataType === "all") {
       // Expect data to have keys: trial_balance, deals, manual_journals, accounts
       for (const [rawKey, value] of Object.entries(data)) {
         const key = KEY_ALIASES[rawKey] ?? rawKey;
-        db.prepare("INSERT INTO freee_cache (fiscal_year_id, data_type, data_json, fetched_at) VALUES (?, ?, ?, ?)")
-          .run(fiscalYearId, key, JSON.stringify(value), now);
+        upsertCache(key, value);
       }
     } else {
-      db.prepare("INSERT INTO freee_cache (fiscal_year_id, data_type, data_json, fetched_at) VALUES (?, ?, ?, ?)")
-        .run(fiscalYearId, dataType, JSON.stringify(data), now);
+      upsertCache(dataType, data);
     }
 
     // Update fiscal year status

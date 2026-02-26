@@ -153,8 +153,15 @@ const handler = async (args: any) => {
       if (p.taxablePurchases !== 0) agg.taxablePurchases = p.taxablePurchases;
       if (p.nonTaxablePurchases !== 0) agg.nonTaxablePurchases = p.nonTaxablePurchases;
       if (p.commonPurchases !== 0) agg.commonPurchases = p.commonPurchases;
-      if (p.nonQualifiedPurchases80 !== 0) agg.nonQualifiedPurchases80 = p.nonQualifiedPurchases80;
-      if (p.nonQualifiedPurchases50 !== 0) agg.nonQualifiedPurchases50 = p.nonQualifiedPurchases50;
+      if (p.nonQualifiedPurchases80 !== 0) {
+        agg.nonQualifiedPurchases80 = p.nonQualifiedPurchases80;
+        // Sync by-use: manual override → all to common (conservative: subject to pro-rating)
+        agg.nq80ByUse = { taxableStd: 0, taxableRed: 0, nonTaxableStd: 0, nonTaxableRed: 0, commonStd: p.nonQualifiedPurchases80, commonRed: 0 };
+      }
+      if (p.nonQualifiedPurchases50 !== 0) {
+        agg.nonQualifiedPurchases50 = p.nonQualifiedPurchases50;
+        agg.nq50ByUse = { taxableStd: 0, taxableRed: 0, nonTaxableStd: 0, nonTaxableRed: 0, commonStd: p.nonQualifiedPurchases50, commonRed: 0 };
+      }
       if (p.salesReturnAmount !== 0) {
         agg.salesReturnStandard = p.salesReturnAmount;
         agg.salesReturnReduced = 0;
@@ -205,6 +212,15 @@ const handler = async (args: any) => {
         badDebtRecoveredStandard: 0,
         badDebtRecoveredReduced: 0,
 
+        nq80ByUse: { taxableStd: 0, taxableRed: 0, nonTaxableStd: 0, nonTaxableRed: 0, commonStd: p.nonQualifiedPurchases80, commonRed: 0 },
+        nq50ByUse: { taxableStd: 0, taxableRed: 0, nonTaxableStd: 0, nonTaxableRed: 0, commonStd: p.nonQualifiedPurchases50, commonRed: 0 },
+        nqReturn80ByUse: { taxableStd: 0, taxableRed: 0, nonTaxableStd: 0, nonTaxableRed: 0, commonStd: 0, commonRed: 0 },
+        nqReturn50ByUse: { taxableStd: 0, taxableRed: 0, nonTaxableStd: 0, nonTaxableRed: 0, commonStd: 0, commonRed: 0 },
+
+        importTaxPaymentTaxable: 0,
+        importTaxPaymentNonTaxable: 0,
+        importTaxPaymentCommon: 0,
+
         securitiesTransfer: 0,
 
         unclassifiedTaxCodes: [],
@@ -252,11 +268,12 @@ const handler = async (args: any) => {
 
     // --- 95%ルール判定（短期事業年度は年換算 — No.6401）---
     let taxableSalesForRule = taxableSalesNumerator;
-    const fyStart = new Date(fy.start_date);
-    const fyEnd = new Date(fy.end_date);
-    const fyMonths = Math.max(1, Math.round(
-      (fyEnd.getTime() - fyStart.getTime()) / (1000 * 60 * 60 * 24 * 30.4375)
-    ));
+    // Calendar-based month count from YYYY-MM-DD strings (no timezone dependency)
+    const [sY, sM, sD] = (fy.start_date as string).split("-").map(Number);
+    const [eY, eM, eD] = (fy.end_date as string).split("-").map(Number);
+    const fyMonths = Math.max(1,
+      (eY - sY) * 12 + (eM - sM) + (eD >= sD ? 1 : 0)
+    );
     if (fyMonths < 12) {
       // 短期事業年度: 年換算で5億円判定
       taxableSalesForRule = Math.floor(taxableSalesNumerator * 12 / fyMonths);
@@ -291,18 +308,21 @@ const handler = async (args: any) => {
     const returnTax_common_standard = Math.floor(agg.purchaseReturnCommonStandard * rates.standardTaxPortion);
     const returnTax_common_reduced = Math.floor(agg.purchaseReturnCommonReduced * rates.reducedTaxPortion);
 
-    // ⑯ 課税売上対応の仕入に係る消費税額（国税分）— 返還控除後
+    // ⑯ 課税売上対応の仕入に係る消費税額（国税分）— 返還控除後 + 輸入税額
     const s2_16_taxablePurchaseTax =
       (purchaseTax_taxable_standard + purchaseTax_taxable_reduced)
-      - (returnTax_taxable_standard + returnTax_taxable_reduced);
-    // ⑰ 非課税売上対応の仕入に係る消費税額（国税分）— 返還控除後
+      - (returnTax_taxable_standard + returnTax_taxable_reduced)
+      + agg.importTaxPaymentTaxable;
+    // ⑰ 非課税売上対応の仕入に係る消費税額（国税分）— 返還控除後 + 輸入税額
     const s2_17_nonTaxablePurchaseTax =
       (purchaseTax_nonTaxable_standard + purchaseTax_nonTaxable_reduced)
-      - (returnTax_nonTaxable_standard + returnTax_nonTaxable_reduced);
-    // ⑱ 共通対応の仕入に係る消費税額（国税分）— 返還控除後
+      - (returnTax_nonTaxable_standard + returnTax_nonTaxable_reduced)
+      + agg.importTaxPaymentNonTaxable;
+    // ⑱ 共通対応の仕入に係る消費税額（国税分）— 返還控除後 + 輸入税額
     const s2_18_commonPurchaseTax =
       (purchaseTax_common_standard + purchaseTax_common_reduced)
-      - (returnTax_common_standard + returnTax_common_reduced);
+      - (returnTax_common_standard + returnTax_common_reduced)
+      + agg.importTaxPaymentCommon;
 
     // 仕入税額の合計（全区分）
     const totalPurchaseTax = s2_16_taxablePurchaseTax + s2_17_nonTaxablePurchaseTax + s2_18_commonPurchaseTax;
@@ -314,18 +334,41 @@ const handler = async (args: any) => {
       + (returnTax_common_standard + returnTax_common_reduced);
 
     // --- インボイス経過措置控除税額 ---
-    // 経過措置は個別対応方式/一括比例配分方式の按分も必要
-    // アダプターでは用途別に分けていないため、全額合算で計算し、
-    // 按分は控除方式に応じて後で適用する
-    // TODO: アダプターにインボイス経過措置の用途別内訳を追加して精緻化
+    // 用途別内訳を使って個別対応方式に正確に対応
 
-    const transitTax80_standard_raw = Math.floor(agg.nonQualifiedPurchases80Standard * rates.standardTaxPortion);
-    const transitTax80_reduced_raw = Math.floor(agg.nonQualifiedPurchases80Reduced * rates.reducedTaxPortion);
-    const transitTax50_standard_raw = Math.floor(agg.nonQualifiedPurchases50Standard * rates.standardTaxPortion);
-    const transitTax50_reduced_raw = Math.floor(agg.nonQualifiedPurchases50Reduced * rates.reducedTaxPortion);
+    // 経過措置 仕入返還税額を算出（経過措置控除から差し引く）
+    const nqRet80 = agg.nqReturn80ByUse;
+    const nqRet50 = agg.nqReturn50ByUse;
 
-    const transitTax80_total = Math.floor((transitTax80_standard_raw + transitTax80_reduced_raw) * 0.8);
-    const transitTax50_total = Math.floor((transitTax50_standard_raw + transitTax50_reduced_raw) * 0.5);
+    // Helper: 経過措置税額（base × rate × 控除率）を用途別に算出
+    function transitTaxByUse(
+      bu: typeof agg.nq80ByUse,
+      retBu: typeof nqRet80,
+      deductionRate: number,
+    ) {
+      const taxable = Math.floor(
+        (Math.floor(bu.taxableStd * rates.standardTaxPortion) + Math.floor(bu.taxableRed * rates.reducedTaxPortion)
+        - Math.floor(retBu.taxableStd * rates.standardTaxPortion) - Math.floor(retBu.taxableRed * rates.reducedTaxPortion))
+        * deductionRate,
+      );
+      const nonTaxable = Math.floor(
+        (Math.floor(bu.nonTaxableStd * rates.standardTaxPortion) + Math.floor(bu.nonTaxableRed * rates.reducedTaxPortion)
+        - Math.floor(retBu.nonTaxableStd * rates.standardTaxPortion) - Math.floor(retBu.nonTaxableRed * rates.reducedTaxPortion))
+        * deductionRate,
+      );
+      const common = Math.floor(
+        (Math.floor(bu.commonStd * rates.standardTaxPortion) + Math.floor(bu.commonRed * rates.reducedTaxPortion)
+        - Math.floor(retBu.commonStd * rates.standardTaxPortion) - Math.floor(retBu.commonRed * rates.reducedTaxPortion))
+        * deductionRate,
+      );
+      return { taxable, nonTaxable, common, total: taxable + nonTaxable + common };
+    }
+
+    const transit80 = transitTaxByUse(agg.nq80ByUse, nqRet80, 0.8);
+    const transit50 = transitTaxByUse(agg.nq50ByUse, nqRet50, 0.5);
+
+    const transitTax80_total = transit80.total;
+    const transitTax50_total = transit50.total;
 
     // 経過措置も控除方式に応じた按分を適用
     let s2_transitTax: number;
@@ -335,10 +378,11 @@ const handler = async (args: any) => {
       // 一括比例配分: 経過措置全額 × 課税売上割合
       s2_transitTax = Math.floor((transitTax80_total + transitTax50_total) * s2_06_taxableSalesRatio);
     } else {
-      // 個別対応方式: 用途別内訳がないため、暫定的に課税売上割合で按分
-      // 本来は課対分は全額、非対分は0、共対分は按分が必要
-      // TODO: アダプターに用途別内訳追加後に精緻化
-      s2_transitTax = Math.floor((transitTax80_total + transitTax50_total) * s2_06_taxableSalesRatio);
+      // 個別対応方式: 課対分は全額、非対分は0、共対分は按分
+      const transitTaxable = transit80.taxable + transit50.taxable;
+      const transitCommon = Math.floor((transit80.common + transit50.common) * s2_06_taxableSalesRatio);
+      // 非対分は控除不可（加算しない）
+      s2_transitTax = transitTaxable + transitCommon;
     }
 
     // --- 控除対象仕入税額の決定 ---

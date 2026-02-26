@@ -12,6 +12,20 @@ import type {
   PurchaseBuckets,
 } from "./consumption-tax-aggregator.service.js";
 
+/** Invoice transition amounts broken down by purchase use and rate */
+export interface InvoiceTransitionByUse {
+  taxableStd: number;
+  taxableRed: number;
+  nonTaxableStd: number;
+  nonTaxableRed: number;
+  commonStd: number;
+  commonRed: number;
+}
+
+function emptyInvoiceTransitionByUse(): InvoiceTransitionByUse {
+  return { taxableStd: 0, taxableRed: 0, nonTaxableStd: 0, nonTaxableRed: 0, commonStd: 0, commonRed: 0 };
+}
+
 /**
  * Flat aggregation shape consumed by calculate-general.tool.ts
  */
@@ -60,6 +74,19 @@ export interface FlatConsumptionTaxData {
   // Bad debt recovered (控除過大調整税額)
   badDebtRecoveredStandard: number;
   badDebtRecoveredReduced: number;
+
+  // Invoice transition — by use (for individual attribution method)
+  nq80ByUse: InvoiceTransitionByUse;
+  nq50ByUse: InvoiceTransitionByUse;
+
+  // Invoice transition purchase returns — by use
+  nqReturn80ByUse: InvoiceTransitionByUse;
+  nqReturn50ByUse: InvoiceTransitionByUse;
+
+  // Import tax payments (amount IS tax, not base — by purchase use)
+  importTaxPaymentTaxable: number;
+  importTaxPaymentNonTaxable: number;
+  importTaxPaymentCommon: number;
 
   // Securities transfer (有価証券譲渡 — 5% rule)
   securitiesTransfer: number;
@@ -139,6 +166,7 @@ export function flattenAggregation(
   const it50_s = agg.invoiceTransition.standard10.exempt50;
   const it50_r = agg.invoiceTransition.reduced8.exempt50;
 
+  // Totals (all uses combined) — for full/proportional methods
   const nq80Std = it80_s.taxablePurchase.taxableAmount
     + it80_s.nonTaxablePurchase.taxableAmount
     + it80_s.commonPurchase.taxableAmount;
@@ -151,6 +179,46 @@ export function flattenAggregation(
   const nq50Red = it50_r.taxablePurchase.taxableAmount
     + it50_r.nonTaxablePurchase.taxableAmount
     + it50_r.commonPurchase.taxableAmount;
+
+  // By-use breakdown — for individual attribution method
+  const nq80ByUse: InvoiceTransitionByUse = {
+    taxableStd: it80_s.taxablePurchase.taxableAmount,
+    taxableRed: it80_r.taxablePurchase.taxableAmount,
+    nonTaxableStd: it80_s.nonTaxablePurchase.taxableAmount,
+    nonTaxableRed: it80_r.nonTaxablePurchase.taxableAmount,
+    commonStd: it80_s.commonPurchase.taxableAmount,
+    commonRed: it80_r.commonPurchase.taxableAmount,
+  };
+  const nq50ByUse: InvoiceTransitionByUse = {
+    taxableStd: it50_s.taxablePurchase.taxableAmount,
+    taxableRed: it50_r.taxablePurchase.taxableAmount,
+    nonTaxableStd: it50_s.nonTaxablePurchase.taxableAmount,
+    nonTaxableRed: it50_r.nonTaxablePurchase.taxableAmount,
+    commonStd: it50_s.commonPurchase.taxableAmount,
+    commonRed: it50_r.commonPurchase.taxableAmount,
+  };
+
+  // --- Invoice transition purchase returns ---
+  const itr80_s = agg.invoiceTransitionPurchaseReturn.standard10.exempt80;
+  const itr80_r = agg.invoiceTransitionPurchaseReturn.reduced8.exempt80;
+  const itr50_s = agg.invoiceTransitionPurchaseReturn.standard10.exempt50;
+  const itr50_r = agg.invoiceTransitionPurchaseReturn.reduced8.exempt50;
+  const nqReturn80ByUse: InvoiceTransitionByUse = {
+    taxableStd: itr80_s.taxablePurchase.taxableAmount,
+    taxableRed: itr80_r.taxablePurchase.taxableAmount,
+    nonTaxableStd: itr80_s.nonTaxablePurchase.taxableAmount,
+    nonTaxableRed: itr80_r.nonTaxablePurchase.taxableAmount,
+    commonStd: itr80_s.commonPurchase.taxableAmount,
+    commonRed: itr80_r.commonPurchase.taxableAmount,
+  };
+  const nqReturn50ByUse: InvoiceTransitionByUse = {
+    taxableStd: itr50_s.taxablePurchase.taxableAmount,
+    taxableRed: itr50_r.taxablePurchase.taxableAmount,
+    nonTaxableStd: itr50_s.nonTaxablePurchase.taxableAmount,
+    nonTaxableRed: itr50_r.nonTaxablePurchase.taxableAmount,
+    commonStd: itr50_s.commonPurchase.taxableAmount,
+    commonRed: itr50_r.commonPurchase.taxableAmount,
+  };
 
   // --- Sales return ---
   const sr = sumBucketPair(agg.salesReturn.standard10, agg.salesReturn.reduced8);
@@ -199,6 +267,15 @@ export function flattenAggregation(
 
     badDebtRecoveredStandard: bdr.standard,
     badDebtRecoveredReduced: bdr.reduced,
+
+    nq80ByUse,
+    nq50ByUse,
+    nqReturn80ByUse,
+    nqReturn50ByUse,
+
+    importTaxPaymentTaxable: agg.importTaxPayments.taxable,
+    importTaxPaymentNonTaxable: agg.importTaxPayments.nonTaxable,
+    importTaxPaymentCommon: agg.importTaxPayments.common,
 
     securitiesTransfer: agg.securitiesTransfer,
 

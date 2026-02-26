@@ -76,6 +76,16 @@ export interface ConsumptionTaxAggregation {
   // Bad debt recovered (tracked separately — 付表2-3 ㉘ → 付表1-3 ③ → 第一表 ③)
   badDebtRecovered: RateKeyedBuckets<RateBucket>;
 
+  // Invoice transition purchase returns (separate from normal purchase returns)
+  invoiceTransitionPurchaseReturn: RateKeyedBuckets<InvoiceTransitionBucket>;
+
+  // Import tax payments (amount IS tax, not base — tracked by purchase use)
+  importTaxPayments: {
+    taxable: number;
+    nonTaxable: number;
+    common: number;
+  };
+
   // Securities transfer (有価証券譲渡 — 5% rule for taxable sales ratio)
   securitiesTransfer: number;
 
@@ -140,6 +150,8 @@ function emptyAggregation(): ConsumptionTaxAggregation {
     purchases: emptyRateKeyed(emptyPurchaseBuckets),
     invoiceTransition: emptyRateKeyed(emptyInvoiceTransitionBucket),
     purchaseReturn: emptyRateKeyed(emptyPurchaseBuckets),
+    invoiceTransitionPurchaseReturn: emptyRateKeyed(emptyInvoiceTransitionBucket),
+    importTaxPayments: { taxable: 0, nonTaxable: 0, common: 0 },
     badDebtRecovered: emptyRateKeyed(emptyBucket),
     securitiesTransfer: 0,
     simplifiedSales: {
@@ -324,7 +336,13 @@ function processDetail(
     case "purchase_return": {
       if (!purchaseUse) break;
       const prKey = purchaseUseKey(purchaseUse);
-      addToBucket(agg.purchaseReturn[rk][prKey], amount, classification, sign);
+      if (invoiceTransition === "none") {
+        addToBucket(agg.purchaseReturn[rk][prKey], amount, classification, sign);
+      } else if (invoiceTransition === "exempt_80") {
+        addToBucket(agg.invoiceTransitionPurchaseReturn[rk].exempt80[prKey], amount, classification, sign);
+      } else if (invoiceTransition === "exempt_50") {
+        addToBucket(agg.invoiceTransitionPurchaseReturn[rk].exempt50[prKey], amount, classification, sign);
+      }
       break;
     }
 
@@ -340,13 +358,24 @@ function processDetail(
 
     case "import_tax_payment": {
       // Import tax payment codes (輸税/地消貨割) — the amount IS the tax paid.
-      // Add directly to purchases as tax amount (not base amount).
+      // Track separately so the adapter can pass them through to calculate-general.
       if (!purchaseUse) break;
-      const itpKey = purchaseUseKey(purchaseUse);
-      // For import tax payments, the amount is already the tax, not a base.
-      // We add it directly to the nationalTax of the appropriate bucket.
       const itpSign = signMultiplier(category, entrySide);
-      agg.purchases[rk][itpKey].nationalTax += amount * itpSign;
+      const signedTax = amount * itpSign;
+      if (purchaseUse === "taxable") {
+        agg.importTaxPayments.taxable += signedTax;
+      } else if (purchaseUse === "non_taxable") {
+        agg.importTaxPayments.nonTaxable += signedTax;
+      } else {
+        agg.importTaxPayments.common += signedTax;
+      }
+      break;
+    }
+
+    // ---- Import local tax (地消貨割) ----
+    case "import_local_tax": {
+      // Local consumption tax on imports — not deductible as input tax.
+      // No accumulation needed (地方消費税は仕入税額控除の対象外).
       break;
     }
 

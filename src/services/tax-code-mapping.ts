@@ -26,7 +26,8 @@ export type ConsumptionTaxCategory =
   | "bad_debt_recovered"         // 貸倒回収
   | "purchase_return"            // 仕入返還
   | "import_taxable"             // 輸入（課税貨物）— 本体額コード
-  | "import_tax_payment"         // 輸入（税額コード）— 金額がそのまま税額
+  | "import_tax_payment"         // 輸入（税額コード）— 金額がそのまま国税額
+  | "import_local_tax"           // 地消貨割 — 地方消費税分（国税控除に不算入）
   | "simplified_type_1"
   | "simplified_type_2"
   | "simplified_type_3"
@@ -293,10 +294,10 @@ TAX_CODE_MAP.set(31,  entry("import_taxable", "old_5", "none", "common"));
 TAX_CODE_MAP.set(139, importTaxPaymentEntry("standard_10", "taxable"));
 // 課対輸税 8%（軽）
 TAX_CODE_MAP.set(166, importTaxPaymentEntry("reduced_8", "taxable"));
-// 地消貨割 10%
-TAX_CODE_MAP.set(142, importTaxPaymentEntry("standard_10", "taxable"));
-// 地消貨割 8%（軽）
-TAX_CODE_MAP.set(169, importTaxPaymentEntry("reduced_8", "taxable"));
+// 地消貨割 10% — 地方消費税分（国税の仕入税額控除には不算入）
+TAX_CODE_MAP.set(142, { category: "import_local_tax" as any, rateType: "standard_10", invoiceTransition: "none", purchaseUse: "taxable", nationalTaxRate: 0, localTaxRate: 0 });
+// 地消貨割 8%（軽）— 地方消費税分
+TAX_CODE_MAP.set(169, { category: "import_local_tax" as any, rateType: "reduced_8", invoiceTransition: "none", purchaseUse: "taxable", nationalTaxRate: 0, localTaxRate: 0 });
 // 非対輸税 10%
 TAX_CODE_MAP.set(140, importTaxPaymentEntry("standard_10", "non_taxable"));
 // 共対輸税 10%
