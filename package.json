@@ -1,0 +1,30 @@
+{
+  "name": "freee-tax-filing-mcp",
+  "version": "0.1.0",
+  "description": "freee会計データを用いた法人税務申告MCPサーバー",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && shx chmod +x dist/index.js",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "shx": "^0.3.4",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}
