@@ -112,12 +112,21 @@ const handler = async (args: any) => {
     const results: Record<string, any> = {};
     const skipped: string[] = [];
     const errors: string[] = [];
+    const succeeded: string[] = [];
 
     // Helper to run a schedule and handle errors
     async function runSchedule(num: string, fn: () => Promise<any>) {
       calculationOrder.push(num);
       try {
-        results[num] = await fn();
+        const result = await fn();
+        results[num] = result;
+        // Check if the tool itself returned an error
+        if (result && result.isError) {
+          const errText = result.content?.map((c: any) => c.text).join("") ?? "unknown error";
+          errors.push(`別表${num}: ${errText}`);
+        } else {
+          succeeded.push(num);
+        }
       } catch (err) {
         errors.push(`別表${num}: ${formatError(err)}`);
       }
@@ -137,7 +146,7 @@ const handler = async (args: any) => {
     } else {
       skipped.push("16");
     }
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // Schedule 15 - Entertainment expenses
     if (p.totalEntertainment > 0) {
@@ -151,7 +160,7 @@ const handler = async (args: any) => {
     } else {
       skipped.push("15");
     }
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // Schedule 08 - Dividend received deduction
     if (p.dividends && p.dividends.length > 0) {
@@ -165,7 +174,7 @@ const handler = async (args: any) => {
     } else {
       skipped.push("08");
     }
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // === Phase 2: Schedule 04 (depends on 16, 15, 08 adjustments already in DB) ===
     await runSchedule("04", async () => {
@@ -175,7 +184,7 @@ const handler = async (args: any) => {
         {} as any,
       );
     });
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // Schedule 14 - Donations (needs schedule 04 taxable income)
     if (p.generalDonations > 0 || p.designatedDonations > 0 || p.nationalLocalGovDonations > 0) {
@@ -195,7 +204,7 @@ const handler = async (args: any) => {
     } else {
       skipped.push("14");
     }
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // === Phase 3: Schedule 07 (depends on 04) ===
     if (p.carriedLosses && p.carriedLosses.length > 0) {
@@ -209,7 +218,7 @@ const handler = async (args: any) => {
     } else {
       skipped.push("07");
     }
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // === Phase 4: Schedule 06 (independent but used by 01) ===
     let taxCreditsFromSchedule06 = 0;
@@ -233,7 +242,7 @@ const handler = async (args: any) => {
     } else {
       skipped.push("06");
     }
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // Get carried loss deduction from schedule 07 result
     let carriedLossDeduction = 0;
@@ -259,7 +268,7 @@ const handler = async (args: any) => {
         {} as any,
       );
     });
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // === Phase 6: Schedule 05-2 (depends on 01) ===
     await runSchedule("05-2", async () => {
@@ -279,7 +288,7 @@ const handler = async (args: any) => {
         {} as any,
       );
     });
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // === Phase 7: Schedule 05-1 (depends on 04, 05-2) ===
     await runSchedule("05-1", async () => {
@@ -292,7 +301,7 @@ const handler = async (args: any) => {
         {} as any,
       );
     });
-    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped);
+    if (errors.length > 0) return errorStop(db, p, calculationOrder, results, errors, skipped, succeeded);
 
     // === Phase 8: Schedule 02 (independent) ===
     if (p.totalShares && p.shareholders && p.shareholders.length > 0) {
@@ -322,17 +331,23 @@ const handler = async (args: any) => {
       INSERT INTO audit_log (fiscal_year_id, action, target, detail, timestamp)
       VALUES (?, 'calculate', 'all_schedules', ?, ?)
     `).run(p.fiscalYearId, JSON.stringify({
-      calculated: calculationOrder.filter(s => results[s]),
+      succeeded,
       skipped,
       errors,
     }), now);
 
     if (errors.length > 0) {
-      return jsonResult("一括計算（一部エラー）", { calculated: Object.keys(results), skipped, errors });
+      return {
+        content: [{
+          type: "text" as const,
+          text: `一括計算（一部エラー）\n\n成功: ${succeeded.length > 0 ? succeeded.map(s => `別表${s}`).join(", ") : "なし"}\nスキップ: ${skipped.length > 0 ? skipped.map(s => `別表${s}`).join(", ") : "なし"}\nエラー: ${errors.length}件\n\n${errors.join("\n")}\n\n${JSON.stringify({ succeeded, skipped, errors }, null, 2)}`,
+        }],
+        isError: true,
+      };
     }
 
     return jsonResult("全別表の一括計算が完了しました", {
-      calculationOrder,
+      succeeded,
       skipped,
       status: "calculated",
       message: "全別表の計算が正常に完了しました。validate-schedules で整合性チェックを実行してください。",
@@ -342,18 +357,24 @@ const handler = async (args: any) => {
   }
 };
 
-function errorStop(db: any, p: any, calculationOrder: string[], results: Record<string, any>, errors: string[], skipped: string[]) {
+function errorStop(db: any, p: any, calculationOrder: string[], results: Record<string, any>, errors: string[], skipped: string[], succeeded: string[]) {
   const now = new Date().toISOString();
   db.prepare(`
     INSERT INTO audit_log (fiscal_year_id, action, target, detail, timestamp)
     VALUES (?, 'calculate', 'all_schedules', ?, ?)
   `).run(p.fiscalYearId, JSON.stringify({
-    calculated: calculationOrder.filter(s => results[s]),
+    succeeded,
     skipped,
     errors,
   }), now);
 
-  return jsonResult("一括計算（エラーで中断）", { calculated: Object.keys(results), skipped, errors });
+  return {
+    content: [{
+      type: "text" as const,
+      text: `一括計算（エラーで中断）\n\n成功: ${succeeded.length > 0 ? succeeded.map(s => `別表${s}`).join(", ") : "なし"}\nスキップ: ${skipped.length > 0 ? skipped.map(s => `別表${s}`).join(", ") : "なし"}\nエラー: ${errors.length}件\n\n${errors.join("\n")}\n\n${JSON.stringify({ succeeded, skipped, errors }, null, 2)}`,
+    }],
+    isError: true,
+  };
 }
 
 export const CalculateAllSchedulesTool: ToolDefinition<typeof schema> = {

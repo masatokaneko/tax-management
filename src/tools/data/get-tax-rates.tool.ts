@@ -12,12 +12,17 @@ const handler = async (args: any) => {
     const { fiscalYear } = args.params;
     const available = getAvailableFiscalYears();
 
-    if (!available.includes(fiscalYear)) {
-      return errorResult(`事業年度 ${fiscalYear} の税率テーブルが見つかりません。利用可能: ${available.join(", ")}`);
-    }
-
+    // getCorporateTaxRates has fallback logic, so we always try it
     const rates = getCorporateTaxRates(fiscalYear);
-    return jsonResult(`${fiscalYear}年度の法人税率テーブル`, rates);
+    const isExactMatch = available.includes(fiscalYear);
+    const note = isExactMatch
+      ? ""
+      : `\n※ ${fiscalYear}年度の税率テーブルがないため、${rates.fiscalYear}年度の税率を適用しています。`;
+
+    return jsonResult(`${fiscalYear}年度の法人税率テーブル${note}`, {
+      ...rates,
+      availableFiscalYears: available,
+    });
   } catch (error) {
     return errorResult(formatError(error));
   }
