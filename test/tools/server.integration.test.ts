@@ -246,7 +246,7 @@ describe("MCP Server Integration", () => {
       });
 
       // Add a tax adjustment
-      await client.callTool({
+      const addResult = await client.callTool({
         name: "add-adjustment",
         arguments: {
           params: {
@@ -258,6 +258,20 @@ describe("MCP Server Integration", () => {
           },
         },
       });
+
+      // Confirm the adjustment (required for schedule 04 to pick it up)
+      const addText = getText(addResult);
+      const idMatch = addText.match(/"id":\s*(\d+)/);
+      if (idMatch) {
+        await client.callTool({
+          name: "confirm-adjustment",
+          arguments: {
+            params: {
+              ids: [parseInt(idMatch[1])],
+            },
+          },
+        });
+      }
     });
 
     it("calculates schedule 04 (所得計算)", async () => {

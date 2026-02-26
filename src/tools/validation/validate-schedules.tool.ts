@@ -53,14 +53,19 @@ const handler = async (args: any) => {
       });
     }
 
-    // Check 2: Schedule 04 taxable income matches schedule 01 input
+    // Check 2: Schedule 01 taxableIncomeRounded is consistent with schedule 04
     const s04 = schedules["04"];
     const s01 = schedules["01"];
+    // The rounded taxable income in schedule 01 should be floor(max(0, s04.taxableIncome - lossDeduction) / 1000) * 1000
+    // We check that s01.taxableIncomeRounded <= s04.taxableIncome (loss deduction makes it smaller)
+    const incomeConsistent = s01.taxableIncomeRounded <= s04.taxableIncome && s01.taxableIncomeRounded >= 0;
     checks.push({
-      name: "別表四→別表一の課税所得一致",
-      description: "別表四の課税所得が別表一の計算に正しく反映されているか",
-      passed: true,
-      detail: `課税所得: ${s04.taxableIncome.toLocaleString()}円`,
+      name: "別表四→別表一の課税所得整合性",
+      description: "別表一の課税所得（千円未満切捨て後）が別表四の所得以下であること",
+      passed: incomeConsistent,
+      expected: s04.taxableIncome,
+      actual: s01.taxableIncomeRounded,
+      detail: `別表四所得: ${s04.taxableIncome.toLocaleString()}円 → 別表一課税所得: ${s01.taxableIncomeRounded.toLocaleString()}円`,
     });
 
     // Check 3: Schedule 01 tax amount > 0 when taxable income > 0

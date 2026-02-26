@@ -7,25 +7,32 @@ const schema = z.object({
   fiscalYearId: z.string().describe("事業年度ID"),
   totalEntertainment: z.number().int().describe("交際費等の支出額合計（円）"),
   diningExpenseAmount: z.number().int().default(0).describe("うち飲食費の額（円）"),
+  fiscalYearMonths: z.number().int().default(12).describe("事業年度の月数（1-12）"),
 });
 
 const SME_DEDUCTION_LIMIT = 8000000; // 中小法人の定額控除限度額: 800万円
 
 const handler = async (args: any) => {
   try {
-    const { fiscalYearId, totalEntertainment, diningExpenseAmount } = args.params;
+    const { fiscalYearId, totalEntertainment, diningExpenseAmount, fiscalYearMonths } = args.params;
     const db = getDb();
 
     const fy = db.prepare("SELECT * FROM fiscal_years WHERE id = ?").get(fiscalYearId) as any;
     if (!fy) return errorResult(`事業年度 ${fiscalYearId} が見つかりません。`);
+
+    // Input validation: dining expense cannot exceed total entertainment
+    if (diningExpenseAmount > totalEntertainment) {
+      return errorResult(`飲食費（${diningExpenseAmount}円）が交際費等合計（${totalEntertainment}円）を超えています。`);
+    }
 
     const company = db.prepare("SELECT * FROM companies WHERE id = ?").get(fy.company_id) as any;
     if (!company) return errorResult(`会社情報が見つかりません。`);
 
     const isSme = (company.capital_amount ?? 0) <= 100000000; // 資本金1億円以下
 
-    // Method A: SME fixed deduction (800万円限度)
-    const methodA_deductible = isSme ? Math.min(totalEntertainment, SME_DEDUCTION_LIMIT) : 0;
+    // Method A: SME fixed deduction (800万円限度) — 月数按分
+    const adjustedLimit = Math.floor(SME_DEDUCTION_LIMIT * fiscalYearMonths / 12);
+    const methodA_deductible = isSme ? Math.min(totalEntertainment, adjustedLimit) : 0;
     const methodA_nonDeductible = totalEntertainment - methodA_deductible;
 
     // Method B: 50% of dining expenses

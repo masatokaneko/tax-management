@@ -28,7 +28,18 @@ const handler = async (args: any) => {
     if (!schedule04) return errorResult(`別表四が計算されていません。先に calculate-schedule-04 を実行してください。`);
 
     const schedule04Data = JSON.parse(schedule04.result_data);
-    const taxableIncome = Math.max(0, schedule04Data.taxableIncome);
+
+    // Use income after carried loss deduction if schedule 07 exists
+    let incomeBeforeLoss = schedule04Data.taxableIncome;
+    const schedule07 = db.prepare(
+      "SELECT result_data FROM schedule_results WHERE fiscal_year_id = ? AND schedule_number = '07' ORDER BY version DESC LIMIT 1"
+    ).get(fiscalYearId) as any;
+    let lossDeduction = 0;
+    if (schedule07) {
+      const s07 = JSON.parse(schedule07.result_data);
+      lossDeduction = s07.totalDeduction ?? 0;
+    }
+    const taxableIncome = Math.max(0, incomeBeforeLoss - lossDeduction);
 
     // Load Tokyo tax rates
     const tokyoRatesPath = resolve(__dirname, "../../data/master/tokyo-tax-rates.json");

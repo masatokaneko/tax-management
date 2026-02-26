@@ -30,9 +30,9 @@ const handler = async (args: any) => {
     const fy = db.prepare("SELECT id FROM fiscal_years WHERE id = ?").get(fiscalYearId) as any;
     if (!fy) return errorResult(`事業年度 ${fiscalYearId} が見つかりません。`);
 
-    // Get all confirmed tax adjustments
+    // Get confirmed tax adjustments only
     const adjustments = db.prepare(
-      "SELECT * FROM tax_adjustments WHERE fiscal_year_id = ? ORDER BY adjustment_type, item_name"
+      "SELECT * FROM tax_adjustments WHERE fiscal_year_id = ? AND user_confirmed = 1 ORDER BY adjustment_type, item_name"
     ).all(fiscalYearId) as any[];
 
     const additions = adjustments

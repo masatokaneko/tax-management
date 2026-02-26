@@ -4,6 +4,7 @@ import type { CorporateTaxRates } from "../types/index.js";
 
 export interface CorporateTaxInput {
   fiscalYear: string;
+  fiscalYearStartDate?: string; // For defense special tax applicability check (YYYY-MM-DD)
   taxableIncome: number;       // From schedule 04 (before rounding)
   capitalAmount: number;       // Capital (yen)
   priorInterimTax: number;     // Prior interim tax paid
@@ -66,8 +67,12 @@ export function calculateCorporateTax(input: CorporateTaxInput): CorporateTaxRes
   const localCorporateTax = roundTaxAmount(Math.floor(corporateTaxAfterCredits * rates.localCorporateTax.rate));
 
   // Defense special tax (防衛特別法人税)
+  // Only applies if fiscal year starts on or after the defense tax start date
   let defenseSpecialTax = 0;
-  if (rates.defenseSpecialTax.applicable) {
+  const defenseApplicable = rates.defenseSpecialTax.applicable
+    && rates.defenseSpecialTax.startDate
+    && (!input.fiscalYearStartDate || input.fiscalYearStartDate >= rates.defenseSpecialTax.startDate);
+  if (defenseApplicable) {
     const base = corporateTaxAfterCredits - rates.defenseSpecialTax.deductionAmount;
     if (base > 0) {
       defenseSpecialTax = roundTaxAmount(Math.floor(base * rates.defenseSpecialTax.rate));

@@ -32,11 +32,18 @@ const handler = async (args: any) => {
 
     const schedule04Data = JSON.parse(schedule04.result_data);
 
-    // Determine fiscal year for tax rates (from start date year)
-    const fiscalYear = fy.start_date.substring(0, 4);
+    // Determine fiscal year for tax rates
+    // Use start date to find the matching tax rate file, but defense special tax
+    // applicability is checked via effectiveFrom/startDate in the rate data itself.
+    const startYear = parseInt(fy.start_date.substring(0, 4));
+    const endYear = parseInt(fy.end_date.substring(0, 4));
+    // Prefer the year matching the END of fiscal year for rate lookup
+    // (e.g., FY 2025-04 to 2026-03 → use 2025 rates, not 2026)
+    const fiscalYear = String(startYear);
 
     const result = calculateCorporateTax({
       fiscalYear,
+      fiscalYearStartDate: fy.start_date,
       taxableIncome: schedule04Data.taxableIncome,
       capitalAmount: company.capital_amount,
       priorInterimTax,

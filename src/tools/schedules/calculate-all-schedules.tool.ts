@@ -153,7 +153,7 @@ const handler = async (args: any) => {
       await runSchedule("15", async () => {
         const { CalculateSchedule15Tool } = await import("./calculate-schedule-15.tool.js");
         return CalculateSchedule15Tool.handler(
-          { params: { fiscalYearId: p.fiscalYearId, totalEntertainment: p.totalEntertainment, diningExpenseAmount: p.diningExpenseAmount } },
+          { params: { fiscalYearId: p.fiscalYearId, totalEntertainment: p.totalEntertainment, diningExpenseAmount: p.diningExpenseAmount, fiscalYearMonths: p.fiscalYearMonths } },
           {} as any,
         );
       });
