@@ -51,6 +51,7 @@ import { ExportFinancialXbrlTool } from "./export/export-financial-xbrl.tool.js"
 
 // Status tools
 import { GetFilingStatusTool } from "./status/get-filing-status.tool.js";
+import { GetWorkflowTool } from "./status/get-workflow.tool.js";
 
 export function registerAllTools(server: McpServer): void {
   // Setup tools
@@ -103,4 +104,5 @@ export function registerAllTools(server: McpServer): void {
 
   // Status tools
   registerTool(server, GetFilingStatusTool);
+  registerTool(server, GetWorkflowTool);
 }
